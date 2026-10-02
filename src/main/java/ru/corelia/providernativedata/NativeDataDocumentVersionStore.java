@@ -56,7 +56,8 @@ public final class NativeDataDocumentVersionStore implements DocumentVersionStor
                 "changeToken", text(mutation.response(), "changeToken"), "actor", mutation.createdVersion() == null ? auth.login() : mutation.createdVersion().createdBy());
         if (mutation.createdVersion() != null) {
             DocumentVersion version = mutation.createdVersion();
-            body.set("createdVersion", object("id", version.id(), "number", version.number(), "schemaVersion", version.schemaVersion(), "createdBy", version.createdBy()));
+            var attachments = array(version.attachments().stream().map(this::attachmentJson).toList());
+            body.set("createdVersion", object("id", version.id().isEmpty() ? java.util.UUID.randomUUID().toString() : version.id(), "number", version.number(), "schemaVersion", version.schemaVersion(), "createdBy", version.createdBy(), "attachments", attachments));
         }
         services.call("data", "/internal/v1/data/documents/" + encode(mutation.documentType()) + "/" + encode(mutation.documentId()) + "/commits", "POST", body, auth);
     }
@@ -64,4 +65,5 @@ public final class NativeDataDocumentVersionStore implements DocumentVersionStor
     private DocumentSnapshot snapshot(JsonNode v) { var a = new LinkedHashMap<String, JsonNode>(); v.path("attributes").properties().forEach(e -> a.put(e.getKey(), e.getValue())); return new DocumentSnapshot(text(v,"id"), text(v,"typeCode"), text(v,"status"), (int) number(v,"currentVersion",0), a, text(v,"createdBy"), Instant.parse(text(v,"createdAt")), text(v,"changeToken")); }
     private DocumentVersion version(JsonNode v) { var a = new LinkedHashMap<String, JsonNode>(); v.path("attributes").properties().forEach(e -> a.put(e.getKey(), e.getValue())); return new DocumentVersion(text(v,"id"), text(v,"documentId"), (int) number(v,"number",0), (int) number(v,"schemaVersion",0), a, text(v,"status"), Instant.parse(text(v,"createdAt")), text(v,"createdBy"), text(v,"closedAt").isEmpty()?null:Instant.parse(text(v,"closedAt")), list(v.path("attachments")).stream().map(this::attachment).toList()); }
     private AttachmentMetadata attachment(JsonNode v) { return new AttachmentMetadata(text(v,"id"), text(v,"logicalId"), text(v,"documentId"), text(v,"fileName"), text(v,"contentType"), number(v,"size",0), number(v,"version",1), v.path("current").asBoolean(true), text(v,"uploadedAt").isEmpty()?null:Instant.parse(text(v,"uploadedAt")), new StorageReference(text(v,"storageReference"))); }
+    private JsonNode attachmentJson(AttachmentMetadata value) { return object("id", value.id(), "logicalId", value.logicalId(), "documentId", value.documentId(), "fileName", value.fileName(), "contentType", value.contentType(), "size", value.size(), "version", value.version(), "storageReference", value.storageReference().value(), "uploadedAt", value.uploadedAt() == null ? "" : value.uploadedAt().toString()); }
 }
