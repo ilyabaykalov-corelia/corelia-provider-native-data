@@ -8,6 +8,7 @@ import ru.corelia.provider.ProviderCapability;
 import ru.corelia.provider.ProviderDescriptor;
 import ru.corelia.provider.DocumentStore;
 import ru.corelia.provider.DocumentTypeProvider;
+import ru.corelia.provider.DocumentVersionStore;
 import ru.corelia.transport.ServiceClient;
 import ru.corelia.configuration.DocumentTypeCatalog;
 
@@ -27,6 +28,11 @@ public class NativeDataProviderConfiguration {
     @Bean
     DocumentTypeProvider nativeDataDocumentTypeProvider(DocumentTypeCatalog types) {
         return new NativeDataDocumentTypeProvider(types);
+    }
+
+    @Bean
+    DocumentVersionStore nativeDataDocumentVersionStore(ServiceClient services, DocumentStore store) {
+        return new NativeDataDocumentVersionStore(services, (NativeDataDocumentStore) store);
     }
 
     @Bean
