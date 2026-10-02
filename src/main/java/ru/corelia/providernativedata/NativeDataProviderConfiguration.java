@@ -1,0 +1,29 @@
+package ru.corelia.providernativedata;
+
+import java.util.EnumSet;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Bean;
+import ru.corelia.provider.ProviderCapability;
+import ru.corelia.provider.ProviderDescriptor;
+
+/** Регистрирует нативное хранилище данных при выборе соответствующих capability. */
+@AutoConfiguration
+@ConditionalOnExpression("'${corelia.provider:platform-v}' == 'native-data' || "
+        + "'${corelia.provider.documents:}' == 'native-data' || "
+        + "'${corelia.provider.document-versions:}' == 'native-data' || "
+        + "'${corelia.provider.attachments:}' == 'native-data'")
+public class NativeDataProviderConfiguration {
+    @Bean
+    ProviderDescriptor nativeDataProviderDescriptor() {
+        return new ProviderDescriptor() {
+            @Override public String id() { return "native-data"; }
+            @Override public java.util.Set<ProviderCapability> capabilities() {
+                return EnumSet.of(
+                        ProviderCapability.DOCUMENTS,
+                        ProviderCapability.DOCUMENT_VERSIONS,
+                        ProviderCapability.ATTACHMENTS);
+            }
+        };
+    }
+}
