@@ -37,7 +37,7 @@ public final class NativeDataDocumentStore implements DocumentStore {
     @Override
     public DocumentSearchResult search(DocumentSearchRequest request, AuthContext auth) {
         JsonNode result = services.call("data", "/internal/v1/data/documents/search", "POST",
-                object("typeCode", request.typeCode(), "offset", request.offset(), "limit", request.limit()), auth);
+                object("typeCode", request.typeCode(), "offset", request.offset(), "limit", request.limit(), "filter", request.filter()), auth);
         return new DocumentSearchResult(list(result.path("items")).stream().map(this::snapshot).toList(), number(result, "total", 0));
     }
 
