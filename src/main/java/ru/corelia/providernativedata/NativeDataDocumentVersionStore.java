@@ -48,10 +48,12 @@ public final class NativeDataDocumentVersionStore implements DocumentVersionStor
     @Override public List<JsonNode> history(String id, AuthContext auth) { return list(call("/by-id/" + encode(id) + "/history", auth).path("items")); }
     @Override public void commit(DocumentMutation mutation, AuthContext auth) {
         var attributes = object(); mutation.attributes().forEach(attributes::set);
+        String changeToken = text(mutation.response(), "changeToken");
+        if (changeToken.isEmpty()) changeToken = java.util.UUID.randomUUID().toString();
         var body = object("expectedVersion", mutation.expectedVersion(), "expectedChangeToken", mutation.expectedChangeToken(),
                 "attributes", attributes, "status", mutation.status(), "idempotencyKey", mutation.idempotencyKey(),
                 "requestHash", mutation.requestHash(), "response", mutation.response(), "history", mutation.history(),
-                "changeToken", text(mutation.response(), "changeToken"), "actor", mutation.createdVersion() == null ? auth.login() : mutation.createdVersion().createdBy());
+                "changeToken", changeToken, "actor", mutation.createdVersion() == null ? auth.login() : mutation.createdVersion().createdBy());
         if (mutation.createdVersion() != null) {
             DocumentVersion version = mutation.createdVersion();
             var attachments = array(version.attachments().stream().map(this::attachmentJson).toList());
