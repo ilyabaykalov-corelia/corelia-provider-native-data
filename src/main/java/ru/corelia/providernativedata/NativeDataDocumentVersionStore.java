@@ -45,7 +45,7 @@ public final class NativeDataDocumentVersionStore implements DocumentVersionStor
     }
     @Override public IdempotencyReceipt receipt(String key, AuthContext auth) {
         JsonNode raw = call("/receipts/" + encode(key), auth);
-        return raw.path("found").asBoolean() ? null : new IdempotencyReceipt(text(raw, "requestHash"), raw.path("response"));
+        return raw.path("found").asBoolean() ? new IdempotencyReceipt(text(raw, "requestHash"), raw.path("response")) : null;
     }
     @Override public List<JsonNode> history(String id, AuthContext auth) { return list(call("/by-id/" + encode(id) + "/history", auth).path("items")); }
     @Override public void commit(DocumentMutation mutation, AuthContext auth) {
