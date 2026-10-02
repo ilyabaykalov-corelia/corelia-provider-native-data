@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import ru.corelia.provider.ProviderCapability;
 import ru.corelia.provider.ProviderDescriptor;
+import ru.corelia.provider.DocumentStore;
+import ru.corelia.transport.ServiceClient;
 
 /** Регистрирует нативное хранилище данных при выборе соответствующих capability. */
 @AutoConfiguration
@@ -14,6 +16,11 @@ import ru.corelia.provider.ProviderDescriptor;
         + "'${corelia.provider.document-versions:}' == 'native-data' || "
         + "'${corelia.provider.attachments:}' == 'native-data'")
 public class NativeDataProviderConfiguration {
+    @Bean
+    DocumentStore nativeDataDocumentStore(ServiceClient services) {
+        return new NativeDataDocumentStore(services);
+    }
+
     @Bean
     ProviderDescriptor nativeDataProviderDescriptor() {
         return new ProviderDescriptor() {
