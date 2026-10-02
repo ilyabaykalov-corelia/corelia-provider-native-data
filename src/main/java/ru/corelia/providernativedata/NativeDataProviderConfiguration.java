@@ -9,6 +9,7 @@ import ru.corelia.provider.ProviderDescriptor;
 import ru.corelia.provider.DocumentStore;
 import ru.corelia.provider.DocumentTypeProvider;
 import ru.corelia.provider.DocumentVersionStore;
+import ru.corelia.provider.AttachmentCatalog;
 import ru.corelia.transport.ServiceClient;
 import ru.corelia.configuration.DocumentTypeCatalog;
 
@@ -34,6 +35,8 @@ public class NativeDataProviderConfiguration {
     DocumentVersionStore nativeDataDocumentVersionStore(ServiceClient services, DocumentStore store) {
         return new NativeDataDocumentVersionStore(services, (NativeDataDocumentStore) store);
     }
+
+    @Bean AttachmentCatalog nativeDataAttachmentCatalog(ServiceClient services) { return new NativeDataAttachmentCatalog(services); }
 
     @Bean
     ProviderDescriptor nativeDataProviderDescriptor() {
