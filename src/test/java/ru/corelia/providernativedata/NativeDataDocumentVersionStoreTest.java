@@ -28,7 +28,7 @@ class NativeDataDocumentVersionStoreTest {
 
     private static NativeDataDocumentVersionStore store(JsonNode response) {
         var services = new StubServiceClient(response);
-        return new NativeDataDocumentVersionStore(services, new NativeDataDocumentStore(services));
+        return new NativeDataDocumentVersionStore(services);
     }
 
     private static final class StubServiceClient extends ServiceClient {

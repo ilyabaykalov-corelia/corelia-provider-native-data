@@ -21,11 +21,9 @@ import tools.jackson.databind.JsonNode;
 /** Read-side adapter immutable версий из data-service. */
 public final class NativeDataDocumentVersionStore implements DocumentVersionStore {
     private final ServiceClient services;
-    private final NativeDataDocumentStore documents;
 
-    public NativeDataDocumentVersionStore(ServiceClient services, NativeDataDocumentStore documents) {
+    public NativeDataDocumentVersionStore(ServiceClient services) {
         this.services = services;
-        this.documents = documents;
     }
 
     @Override public String documentType(String id, AuthContext auth) {

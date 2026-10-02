@@ -22,21 +22,26 @@ import ru.corelia.configuration.DocumentTypeCatalog;
         + "'${corelia.provider.attachments:}' == 'native-data'")
 public class NativeDataProviderConfiguration {
     @Bean
+    @ConditionalOnExpression("'${corelia.provider.documents:${corelia.provider:platform-v}}' == 'native-data'")
     DocumentStore nativeDataDocumentStore(ServiceClient services) {
         return new NativeDataDocumentStore(services);
     }
 
     @Bean
+    @ConditionalOnExpression("'${corelia.provider.document-types:${corelia.provider:platform-v}}' == 'native-data'")
     DocumentTypeProvider nativeDataDocumentTypeProvider(DocumentTypeCatalog types) {
         return new NativeDataDocumentTypeProvider(types);
     }
 
     @Bean
-    DocumentVersionStore nativeDataDocumentVersionStore(ServiceClient services, DocumentStore store) {
-        return new NativeDataDocumentVersionStore(services, (NativeDataDocumentStore) store);
+    @ConditionalOnExpression("'${corelia.provider.document-versions:${corelia.provider:platform-v}}' == 'native-data'")
+    DocumentVersionStore nativeDataDocumentVersionStore(ServiceClient services) {
+        return new NativeDataDocumentVersionStore(services);
     }
 
-    @Bean AttachmentCatalog nativeDataAttachmentCatalog(ServiceClient services) { return new NativeDataAttachmentCatalog(services); }
+    @Bean
+    @ConditionalOnExpression("'${corelia.provider.attachments:${corelia.provider:platform-v}}' == 'native-data'")
+    AttachmentCatalog nativeDataAttachmentCatalog(ServiceClient services) { return new NativeDataAttachmentCatalog(services); }
 
     @Bean
     ProviderDescriptor nativeDataProviderDescriptor() {
