@@ -18,7 +18,7 @@ import ru.corelia.provider.model.StorageReference;
 import ru.corelia.transport.ServiceClient;
 import tools.jackson.databind.JsonNode;
 
-/** Read-side adapter immutable версий из data-service. */
+/** Read-side адаптер неизменяемых версий из data-service. */
 public final class NativeDataDocumentVersionStore implements DocumentVersionStore {
     private final ServiceClient services;
 

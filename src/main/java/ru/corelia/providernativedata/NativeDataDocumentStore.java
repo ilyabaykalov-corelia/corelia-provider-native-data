@@ -14,7 +14,7 @@ import ru.corelia.provider.model.DocumentSnapshot;
 import ru.corelia.transport.ServiceClient;
 import tools.jackson.databind.JsonNode;
 
-/** Provider adapter, передающий канонические document snapshots в data-service. */
+/** Адаптер provider, передающий канонические снимки документов в data-service. */
 public final class NativeDataDocumentStore implements DocumentStore {
     private final ServiceClient services;
 
