@@ -59,6 +59,10 @@ public final class NativeDataDocumentVersionStore implements DocumentVersionStor
             var attachments = array(version.attachments().stream().map(this::attachmentJson).toList());
             body.set("createdVersion", object("id", version.id().isEmpty() ? java.util.UUID.randomUUID().toString() : version.id(), "number", version.number(), "schemaVersion", version.schemaVersion(), "createdBy", version.createdBy(), "attachments", attachments));
         }
+        if (mutation.createdAttachment() != null)
+            body.set("createdAttachment", attachmentJson(mutation.createdAttachment()));
+        if (mutation.retiredAttachment() != null)
+            body.put("retiredAttachmentId", mutation.retiredAttachment().id());
         services.call("data", "/internal/v1/data/documents/" + encode(mutation.documentType()) + "/" + encode(mutation.documentId()) + "/commits", "POST", body, auth);
     }
     private JsonNode call(String path, AuthContext auth) { return services.call("data", "/internal/v1/data/documents" + path, "GET", null, auth); }

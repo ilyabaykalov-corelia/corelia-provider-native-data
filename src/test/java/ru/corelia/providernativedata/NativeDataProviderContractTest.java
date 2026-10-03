@@ -2,12 +2,16 @@ package ru.corelia.providernativedata;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static ru.corelia.support.Json.object;
+import static ru.corelia.support.Json.parse;
 import static ru.corelia.support.Json.write;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -21,7 +25,10 @@ import ru.corelia.provider.test.InMemoryTestProvider;
 import ru.corelia.provider.tck.ProviderContractTest;
 import ru.corelia.provider.tck.ProviderFixture;
 import ru.corelia.provider.model.DocumentSnapshot;
+import ru.corelia.provider.model.DocumentMutation;
 import ru.corelia.provider.model.DocumentVersion;
+import ru.corelia.provider.model.AttachmentMetadata;
+import ru.corelia.provider.model.StorageReference;
 import ru.corelia.provider.model.WorkflowTask;
 import ru.corelia.transport.ServiceClient;
 import tools.jackson.databind.JsonNode;
@@ -80,6 +87,29 @@ class NativeDataProviderContractTest extends ProviderContractTest {
         };
     }
 
+    @Test void persistsAttachmentMutationWithoutCreatingDocumentVersion() {
+        var local = fixture();
+        var values = local.data();
+        local.seed(new DocumentSnapshot(
+                values.documentId(), values.documentType(), "DRAFT", 1,
+                Map.of(values.attribute(), object("value", "исходное")), "user", java.time.Instant.EPOCH,
+                values.changeToken()),
+                new DocumentVersion("version-1", values.documentId(), 1, 1,
+                        Map.of(values.attribute(), object("value", "исходное")), "DRAFT", java.time.Instant.EPOCH,
+                        "user", null, List.of()));
+        var attachment = new AttachmentMetadata(
+                "attachment-1", "attachment-1", values.documentId(), "file.txt", "text/plain", 4, 1,
+                true, java.time.Instant.EPOCH, new StorageReference("s3://bucket/attachment-1"));
+
+        local.versions().commit(new DocumentMutation(
+                values.documentId(), values.documentType(), 1, values.changeToken(),
+                Map.of(values.attribute(), object("value", "исходное")), null, null, attachment, null,
+                "attachment-only", "attachment-only-hash", object("id", attachment.id())), local.allowedAuth());
+
+        assertEquals(attachment.id(), local.attachments().find(attachment.id(), local.allowedAuth()).id());
+        assertEquals(attachment.id(), local.versions().attachments(values.documentId(), local.allowedAuth()).getFirst().id());
+    }
+
     private static void seedDocument(DocumentSnapshot document, DocumentVersion version) {
         ObjectNode attributes = (ObjectNode) object();
         document.attributes().forEach(attributes::set);
@@ -101,6 +131,8 @@ class NativeDataProviderContractTest extends ProviderContractTest {
         LocalDataServiceClient(DataDocumentService service) { super(null, null, null); this.service = service; }
         @Override public JsonNode call(String target, String path, String method, JsonNode body, AuthContext auth) {
             if (!"data".equals(target) || !path.startsWith("/internal/v1/data/documents")) throw new IllegalArgumentException("Unexpected service call");
+            // Повторяем JSON-границу реального HTTP-клиента, а не передаём изменяемый узел напрямую.
+            body = body == null ? null : parse(write(body));
             String value = path.substring("/internal/v1/data/documents".length());
             if ("POST".equals(method) && value.isEmpty()) return service.create(body);
             if ("POST".equals(method) && "/search".equals(value)) return service.search(body);

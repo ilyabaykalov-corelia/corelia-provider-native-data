@@ -27,9 +27,10 @@ public final class NativeDataDocumentStore implements DocumentStore {
         var attributes = object();
         creation.attributes().forEach(attributes::set);
         var body = object("documentId", creation.documentId(), "typeCode", creation.typeCode(),
-                "status", creation.status(), "attributes", attributes, "createdBy", creation.createdBy(),
+                "status", creation.status(), "createdBy", creation.createdBy(),
                 "createdAt", creation.createdAt().toString(), "idempotencyKey", creation.idempotencyKey(),
                 "requestHash", creation.requestHash(), "schemaVersion", 1);
+        body.set("attributes", attributes);
         if (creation.history() != null) body.set("history", creation.history());
         services.call("data", "/internal/v1/data/documents", "POST", body, auth);
     }
